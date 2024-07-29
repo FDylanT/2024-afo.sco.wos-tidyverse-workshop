@@ -1,0 +1,133 @@
+---
+title: "puffin_data"
+author: "Dylan Titmuss"
+date: "2024-07-29"
+output: html_document
+---
+
+## Load packages
+```{r}
+library(tidyverse)
+```
+
+## Generate data
+```{r}
+# set number of focal nests
+n <- 68
+
+# create weight data
+week1_g <- round(runif(n, 50, 100), 1)
+week2_g <- round(runif(n, 70, 350), 1)
+week3_g <- round(runif(n, 290, 1000), 1)
+week4_g <- round(runif(n, 740, 1300), 1)
+week5_g <- round(runif(n, 1145, 1600), 1)
+week6_g <- round(runif(n, 1470, 2000), 1)
+
+weights <- cbind(week1_g, week2_g, week3_g, week4_g, week5_g, week6_g) %>%
+  as.data.frame()
+
+# create nest IDs & location data
+nest <- c(LETTERS, paste0("A", LETTERS), paste0("B", LETTERS))[1:n]
+sites <- c(rep("Siren's Cove", 6), rep("Sunrise Point", 4), rep("East Point", 5),
+              rep("North Ledge", 6), rep("Southern Rocks", 5))
+location <- rep(sites, 3)[1:n]
+location[58:67] <- location[59:68] # add a few more "North Ledge"s
+location[57:66] <- location[58:67]
+
+# combine above into data frame
+pufflings <- cbind(nest, location, weights) %>%
+  filter(week2_g > week1_g,
+         week3_g > week2_g,
+         week4_g > week3_g,
+         week5_g > week4_g,
+         week6_g > week5_g) %>%
+  rename(chick = nest)
+
+write_csv(pufflings, "~/Desktop/Repos/2024-afo.sco.wos-tidyverse-workshop/puffling_weights.csv")
+
+# set up empty adult data frame
+puffins <- as.data.frame(matrix(nrow = 68, ncol = 6))
+puffins <- cbind(nest, location, puffins)
+colnames(puffins)[3:8] <- c("week1_km", "week2_km", "week3_km",
+                            "week4_km", "week5_km", "week6_km")
+
+# create adult foraging data
+for(col in colnames(puffins)[3:8]) {
+  puffins[[col]] <- round(runif(n, 0.25, 80), 2)
+}
+
+# calc summary stats on adult data
+puffin_avgs <- puffins %>%
+  rowwise() %>%
+  summarise(nest = nest,
+            avg = mean(c_across(starts_with("week"))),
+            sd = sd(c_across(starts_with("week"))))
+
+# decrease intra-nest variability in adult data
+puffins_building <- left_join(puffins, puffin_avgs)
+
+for(i in 1:nrow(puffins)) {
+  if(puffins_building$sd[i] > 18) {
+    for(col in colnames(puffins)[3:8]) {
+      puffins[[col]][i] <- round(abs(puffins[[col]][i] - puffins_building$avg[i]), 2)
+    }
+  }
+}
+
+# scale weight data up/down based on corresponding adult foraging data quantiles
+# for(i in 1:nrow(pufflings)) {
+#   focal <- pufflings$chick[i]
+#   if(puffin_avgs$avg[puffin_avgs$nest == focal] < quantile(puffin_avgs$avg)[2]) {
+#     for(col in colnames(pufflings)[3:8]) {
+#       pufflings[[col]][i] <- round(pufflings[[col]][i] * 1.25, 1)
+#     }
+#   }
+#   if(puffin_avgs$avg[puffin_avgs$nest == focal] > quantile(puffin_avgs$avg)[4]) {
+#     for(col in colnames(pufflings)[3:8]) {
+#       pufflings[[col]][i] <- round(pufflings[[col]][i] / 1.25, 1)
+#     }
+#   }
+# }
+
+# calc week-to-week puffling growth
+puffling_growth <- cbind(chick = pufflings$chick,
+                         week1 = pufflings$week1_g,
+                         week2 = pufflings$week2_g - pufflings$week1_g,
+                         week3 = pufflings$week3_g - pufflings$week2_g,
+                         week4 = pufflings$week4_g - pufflings$week3_g,
+                         week5 = pufflings$week5_g - pufflings$week4_g,
+                         week6 = pufflings$week6_g - pufflings$week5_g) %>%
+  as.data.frame() %>%
+  mutate(across(starts_with("week"), as.numeric))
+
+# order foraging data to match indices of periods of greatest/least puffling growth
+for(i in 1:nrow(pufflings)) {
+  focal <- pufflings$chick[i]
+  puffins[puffins$nest == focal, 3:8][order(as.numeric(puffling_growth[i, 2:7]))] <-
+    sort(as.numeric(puffins[puffins$nest == focal, 3:8]), decreasing = TRUE)
+}
+
+write_csv(puffins, "~/Desktop/Repos/2024-afo.sco.wos-tidyverse-workshop/Fratercula_foraging.csv")
+
+# make date sheet
+week1 <- round(runif(n, 1, 7))
+week2 <- round(runif(n, 8, 14))
+week3 <- round(runif(n, 15, 21))
+week4 <- round(runif(n, 22, 28))
+week5 <- round(runif(n, 29, 35))
+week6 <- round(runif(n, 36, 42))
+
+sampling_days <- (cbind(week1, week2, week3,
+                       week4, week5, week6) + 160) %>%
+  cbind(nest, .) %>%
+  as.data.frame() %>%
+  mutate(across(starts_with("week"), as.numeric)) %>%
+  slice(1:nrow(pufflings))
+
+for(col in colnames(sampling_days)[2:7]) {
+  sampling_days[[col]] <- as.Date(sampling_days[[col]], origin = "2024-1-1") %>%
+    format("%m/%d")
+}
+
+write_csv(sampling_days, "~/Desktop/Repos/2024-afo.sco.wos-tidyverse-workshop/Fratercula_sampling_dates.csv")
+```
