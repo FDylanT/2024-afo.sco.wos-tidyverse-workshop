@@ -9,6 +9,7 @@ The official cheatsheets for each core `tidyverse` package and a couple of addit
 * [Data import with `readr`, `readxl` & `googlesheets4`](https://rstudio.github.io/cheatsheets/data-import.pdf) -- note that `readxl` and `googlesheets4` are not "core" `tidyverse` packages and so must be individually loaded (i.e. via `library(readxl)`).
 * [Applying functions with `purrr`](https://rstudio.github.io/cheatsheets/purrr.pdf)
 * [String manipulation with `stringr`](https://rstudio.github.io/cheatsheets/strings.pdf)
+  * CRAN guide to [regular expression syntax in R](https://cran.r-project.org/web/packages/stringr/vignettes/regular-expressions.html)
 * [Handling factors with `forcats`](https://rstudio.github.io/cheatsheets/factors.pdf)
 
 Bonus:
