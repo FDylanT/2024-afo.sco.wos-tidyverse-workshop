@@ -1,0 +1,293 @@
+---
+title: "journey_into_the_tidyverse"
+author: "Dylan Titmuss"
+date: "2024-07-22"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Premise:
+This script explores and visualizes data examining the variation in pufflings' growth rates based on their parents' average time spent travelling to foraging grounds, hypothetically collected in 2022, 2023, and 2024.
+
+#### `tidyverse` functions covered:
+(Note that you very rarely need to know _which_ `tidyverse` package any of these functions belongs to; I had to look most of these up)
+
+ggplot2::
+- ggplot()
+- geom_histogram()
+- geom_boxplot()
+- geom_point()
+- geom_line()
+- geom_jitter()
+- geom_smooth()
+- geom_text()
+- geom_label()
+- aes()
+- position_dodge()
+- scale_*_discrete(): scale_x_discrete()
+- scale_*_continuous(): scale_y_continuous()
+- scale_*_manual(): scale_fill_manual()
+- facet_wrap()
+- coord_flip()
+- labs()
+- theme_*(): theme_linedraw(), theme_classic()
+- theme()
+- element_*(): element_blank(), element_text()
+- ggsave()
+
+dplyr::
+- mutate()
+- group_by()
+- summarise()/summarize()
+- filter()
+- rowwise()
+- c_across()
+- across()
+- *_join(): left_join(), right_join()
+- join_by()
+- case_when()
+- n()
+- lag(), lead()
+
+tidyr::
+- pivot_longer()
+- separate_wider_delim()
+- complete()
+- replace_na()
+
+tidyselect::
+- starts_with()
+- everything()
+
+stringr::
+- str_detect()
+- str_extract()
+- str_remove_all()
+
+readr::
+- read_csv()
+- write_csv()
+
+forcats::
+- as.factor()
+
+magrittr::
+- %>%
+
+glue::
+- glue()
+
+## Load packages
+```{r}
+# install.packages("tidyverse")
+
+library(tidyverse) # this includes ggplot2, dplyr, tidyr, stringr, and more!
+library(glue)
+```
+
+## Load data
+```{r}
+setwd("~/Desktop/Repos/2024-afo.sco.wos-tidyverse-workshop")
+
+pufflings <- read_csv("puffling_weights.csv")
+puffins <- read_csv("Fratercula_foraging.csv")
+dates <- read_csv("Fratercula_sampling_dates.csv")
+```
+
+## Explore & tidy data
+```{r}
+# a very basic visual
+ggplot() +
+  geom_histogram(data = pufflings, aes(x = week1_g))
+
+pufflings <- pufflings %>%
+  
+  # "tidy" data by splitting each data point into its own row
+  pivot_longer(cols = starts_with("week"),
+               names_to = "week",
+               values_to = "weight_g") %>%
+  
+  # intro to regular expressions: extract just the number out of each "weekX" label
+  mutate(week = str_extract(week, "[0-9]"))
+
+weeks <- dates %>%
+  
+  # "tidy" date data to prepare for further transformation
+  pivot_longer(cols = everything(),
+               names_to = "week",
+               names_prefix = "week",   # this removes the specified prefix from each column name
+               values_to = "date") %>%
+  
+  # output the first and last day in each week bracket
+  group_by(week) %>%
+  summarise(start = min(date),
+            end = max(date)) %>%
+  
+  # create a new column from the above data
+  mutate(label = glue("{start}-{end}")) # this is equivalent to `mutate(label = paste0(start, "-", end))`
+
+# remove the leading zeros from the dates for ease of human-readability
+weeks$label <- str_remove_all(weeks$label, "^0|(?<=-)0")
+
+# create a more well-developed plot
+ggplot(pufflings, aes(x = week, y = weight_g)) +
+  # add a boxplot layer
+  geom_boxplot() +
+  
+  # using the same data, layer points on top of boxplots & set the color variable to `week`
+  # (this is more an aesthetic choice rather than particularly meaningful)
+  geom_jitter(aes(col = week), alpha = 0.5) +
+  
+  # change the x-axis labels to those developed above
+  scale_x_discrete(labels = weeks$label) +
+  
+  # change the y-axis scale
+  scale_y_continuous(breaks = seq(500, 2500, by = 500)) +
+  
+  # change the axis labels
+  labs(x = "Date range", y = "Puffling weight (g)") +
+  
+  # rotate the plot
+  coord_flip() +
+  
+  # change the theme
+  theme_linedraw() +
+  #theme_classic() +
+  
+  # customize particular aspects of the theme: remove the background grid and the (redundant) legend
+  theme(panel.grid = element_blank(),
+        axis.title = element_text(face = "bold"),
+        legend.position = "none")
+
+ggsave("puffling_growth.png", width = 6, height = 8, units = "in", dpi = 600)
+```
+
+## Let's play with the adult foraging data frame
+```{r}
+# average each adult's foraging distances across all six weeks
+puffin_avgs <- puffins %>%
+  rowwise() %>%
+  summarise(nest = nest,
+            location = location,
+            avg_distance = mean(c_across(starts_with("week"))))
+
+sample_sizes <- puffin_avgs %>%
+  group_by(location) %>%
+  summarise(number = n())
+
+ggplot(puffin_avgs, aes(x = location, y = avg_distance)) +
+  geom_boxplot() +
+  # geom_text(data = sample_sizes, aes(label = paste("n =", number),
+  #                                    x = location,
+  #                                    y = round(max(puffin_avgs$avg_distance, na.rm = TRUE)) + 5)) +
+  geom_label(data = sample_sizes, aes(label = paste("n =", number),
+                                     x = location,
+                                     y = round(max(puffin_avgs$avg_distance, na.rm = TRUE)) + 5)) +
+  theme_linedraw()
+```
+
+## Merge data frames & continue
+```{r}
+# tidy adult puffin data
+puffins <- pivot_longer(puffins,
+                        cols = starts_with("week"),
+                        names_to = "week",
+                        values_to = "distance_km") %>%
+  
+  # extract digits from character strings
+  mutate(week = str_extract(week, "[0-9]"))
+
+# merge adult and puffling data frames by common variables
+puffins_combined1 <- left_join(puffins, pufflings, join_by(nest == chick, location, week))
+
+puffins_combined2 <- left_join(pufflings, puffins, join_by(chick == nest, location, week))
+
+puffins_combined <- right_join(puffins, pufflings, join_by(nest == chick, location, week))
+
+# visualize newly merged data
+ggplot(puffins_combined, aes(x = distance_km, y = weight_g)) +
+  geom_point() +
+  
+  # add a linear regression line
+  geom_smooth(method = "lm", se = FALSE)
+
+# plot the same thing but creating separate trend lines for each nest
+ggplot(puffins_combined, aes(x = distance_km, y = weight_g, group = nest)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+puffins_combined %>%
+  filter(location == "Siren's Cove") %>%
+  ggplot(aes(x = distance_km, y = weight_g, group = nest)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_linedraw()
+```
+
+## Separate out years
+```{r}
+puffins_combined <- puffins_combined %>%
+  mutate(year = case_when(str_detect(nest, "A[A-Z]") ~ 2023,
+                          str_detect(nest, "B[A-Z]") ~ 2024,
+                          .default = 2022))
+
+# plot annual variation in foraging distances
+puffins_combined %>%
+  
+  # add in missing combination(s) of location & year for consistent boxplot spacing!
+  complete(location, year) %>%
+  
+  # ^note that this above is piped directly into ggplot
+  ggplot(aes(x = location, y = distance_km, fill = as.factor(year))) +
+  geom_boxplot(position = position_dodge(preserve = "single")) +
+  scale_fill_manual(values = c("chartreuse3", "skyblue1", "mediumpurple1"),
+                    name = "Year") +
+  theme_linedraw()
+
+# calculate the pufflings' weight change from week to week
+puffins_combined <- puffins_combined %>%
+  group_by(nest) %>%
+  mutate(growth = weight_g - lag(weight_g)) %>%
+  
+  # fill NAs (first week at each nest) with first-week weight gain
+  replace_na(growth, week1)
+
+# plot growth against distance; go over the difference b/w `aes(col = )` and `col = `
+ggplot() +
+  #geom_point(data = puffins_combined, aes(distance_km, growth), col = "orangered") +
+  geom_point(data = puffins_combined, aes(distance_km, growth, col = location,
+                                          shape = location)) +
+  labs(y = "Growth (g/week)") +
+  labs(y = expression("Growth (g week"^-1*")")) +
+  theme_linedraw()
+
+# prepare to plot data by time
+dates <- dates %>%
+  mutate(across(starts_with("week"), ~ as.Date(.x, format = "%m/%d"))) %>%
+  pivot_longer(cols = starts_with("week"),
+               names_to = "week",
+               names_prefix = "week",
+               values_to = "date") %>%
+  separate_wider_delim(date, delim = "-", names = c("month", "day", "year"),
+                       cols_remove = FALSE)
+
+puffins_combined <- puffins_combined %>%
+  left_join(dates)  # without join_by(), all variables in common are used
+
+write_csv(puffins_combined, "allData.csv")
+write.csv(puffins_combined, "allData2.csv")
+
+ggplot() +
+  geom_line(data = puffins_combined, aes(x = date, y = weight_g, group = nest, col = as.factor(year))) +
+  facet_wrap( ~ factor(location,
+                       levels = unique(puffins_combined$location))) +
+  theme_linedraw()
+```
+
+- geom_col() + geom_errorbar()
+- group_by() %>% filter(n() ...)
+
+- distinct(.keep_all = TRUE)
+- bind_rows()
+- slice()
