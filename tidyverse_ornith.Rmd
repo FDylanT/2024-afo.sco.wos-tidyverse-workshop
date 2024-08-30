@@ -268,7 +268,7 @@ dates2 <- dates %>%
   mutate(across(starts_with("week"),
                 ~ case_when(str_detect(nest, "^[A-Z]$") ~ paste0(.x, "/2022"),
                             str_detect(nest, "^A[A-Z]") ~ paste0(.x, "/2023"),
-                            str_detect(nest, "^B[A-Z]") ~ paste0(.x, "/2024")))) #%>%
+                            str_detect(nest, "^B[A-Z]") ~ paste0(.x, "/2024")))) %>%
   mutate(across(starts_with("week"), ~ as.Date(.x, format = "%m/%d"))) %>%
   pivot_longer(cols = starts_with("week"),
                names_to = "week",
