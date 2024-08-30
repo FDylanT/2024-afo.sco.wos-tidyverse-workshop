@@ -269,8 +269,9 @@ dates <- dates %>%
                names_to = "week",
                names_prefix = "week",
                values_to = "date") %>%
-  separate_wider_delim(date, delim = "-", names = c("month", "day", "year"),
-                       cols_remove = FALSE)
+  separate_wider_delim(date, delim = "-", names = c("year", "month", "day"),
+                       cols_remove = FALSE) %>%
+  mutate(year = as.numeric(year))
 
 puffins_combined <- puffins_combined %>%
   left_join(dates)  # without join_by(), all variables in common are used
