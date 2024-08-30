@@ -90,9 +90,9 @@ library(glue)
 ```{r}
 setwd("~/Desktop/Repos/2024-afo.sco.wos-tidyverse-workshop")
 
-pufflings <- read_csv("puffling_weights.csv")
-puffins <- read_csv("Fratercula_foraging.csv")
-dates <- read_csv("Fratercula_sampling_dates.csv")
+pufflings <- read_csv("data/puffling_weights.csv")
+puffins <- read_csv("data/Fratercula_foraging.csv")
+dates <- read_csv("data/Fratercula_sampling_dates.csv")
 ```
 
 ## Explore & tidy data
@@ -160,7 +160,7 @@ ggplot(pufflings, aes(x = week, y = weight_g)) +
         axis.title = element_text(face = "bold"),
         legend.position = "none")
 
-ggsave("puffling_growth.png", width = 6, height = 8, units = "in", dpi = 600)
+ggsave("figures/puffling_growth.png", width = 6, height = 8, units = "in", dpi = 600)
 ```
 
 ## Let's play with the adult foraging data frame
@@ -275,7 +275,7 @@ dates <- dates %>%
 puffins_combined <- puffins_combined %>%
   left_join(dates)  # without join_by(), all variables in common are used
 
-write_csv(puffins_combined, "allData.csv")
+write_csv(puffins_combined, "data/allPuffinData.csv")
 
 ggplot() +
   geom_line(data = puffins_combined, aes(x = date, y = weight_g, group = nest, col = as.factor(year))) +
