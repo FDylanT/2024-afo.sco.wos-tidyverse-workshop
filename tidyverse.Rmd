@@ -1,5 +1,5 @@
 ---
-title: "journey_into_the_tidyverse"
+title: "Journey into the `tidyverse`"
 author: "Dylan Titmuss"
 date: "2024-07-22"
 output: html_document
