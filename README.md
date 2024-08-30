@@ -2,7 +2,7 @@
 
 ## https://github.com/FDylanT/2024-afo.sco.wos-tidyverse-workshop
 
-The code contained in `tidyverse-ornith.Rmd` (rendered HTML to come [here]()) provides a walkthrough of wrangling and visualising elements of a mock dataset using an assortment of functions from packages contained within the [`tidyverse`](https://www.tidyverse.org/packages/), including `dplyr`, `tidyr`, `stringr`, `readr`, and the ever-wonderful `ggplot2`, among others.
+The code contained in `tidyverse-ornith.Rmd` (rendered HTML to come [here](https://fdylant.github.io/2024-afo.sco.wos-tidyverse-workshop/tidyverse.html)) provides a walkthrough of wrangling and visualising elements of a mock dataset using an assortment of functions from packages contained within the [`tidyverse`](https://www.tidyverse.org/packages/), including `dplyr`, `tidyr`, `stringr`, `readr`, and the ever-wonderful `ggplot2`, among others.
 
 The official cheatsheets for each core `tidyverse` package and a couple of additional ones can be found at the links below:
 * [Data visualization with `ggplot2`](https://rstudio.github.io/cheatsheets/data-visualization.pdf)
