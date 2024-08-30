@@ -263,7 +263,12 @@ ggplot() +
   theme_linedraw()
 
 # prepare to plot data by time
-dates <- dates %>%
+dates2 <- dates %>%
+  # add years
+  mutate(across(starts_with("week"),
+                ~ case_when(str_detect(nest, "^[A-Z]$") ~ paste0(.x, "/2022"),
+                            str_detect(nest, "^A[A-Z]") ~ paste0(.x, "/2023"),
+                            str_detect(nest, "^B[A-Z]") ~ paste0(.x, "/2024")))) #%>%
   mutate(across(starts_with("week"), ~ as.Date(.x, format = "%m/%d"))) %>%
   pivot_longer(cols = starts_with("week"),
                names_to = "week",
@@ -279,7 +284,8 @@ puffins_combined <- puffins_combined %>%
 write_csv(puffins_combined, "data/allPuffinData.csv")
 
 ggplot() +
-  geom_line(data = puffins_combined, aes(x = date, y = weight_g, group = nest, col = as.factor(year))) +
+  geom_line(data = puffins_combined, aes(x = date, y = weight_g, group = nest,
+                                         col = as.factor(year))) +
   facet_wrap( ~ factor(location,
                        levels = unique(puffins_combined$location))) +
   theme_linedraw()
