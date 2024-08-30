@@ -263,13 +263,13 @@ ggplot() +
   theme_linedraw()
 
 # prepare to plot data by time
-dates2 <- dates %>%
+dates <- dates %>%
   # add years
   mutate(across(starts_with("week"),
                 ~ case_when(str_detect(nest, "^[A-Z]$") ~ paste0(.x, "/2022"),
                             str_detect(nest, "^A[A-Z]") ~ paste0(.x, "/2023"),
                             str_detect(nest, "^B[A-Z]") ~ paste0(.x, "/2024")))) %>%
-  mutate(across(starts_with("week"), ~ as.Date(.x, format = "%m/%d"))) %>%
+  mutate(across(starts_with("week"), ~ as.Date(.x, format = "%m/%d/%Y"))) %>%
   pivot_longer(cols = starts_with("week"),
                names_to = "week",
                names_prefix = "week",
@@ -279,21 +279,24 @@ dates2 <- dates %>%
   mutate(year = as.numeric(year))
 
 puffins_combined <- puffins_combined %>%
-  left_join(dates)  # without join_by(), all variables in common are used
+  left_join(dates) %>%  # without join_by(), all variables in common are used
+  
+  # creating fake date column for use in plotting
+  mutate(cal_date = as.Date(paste0(month, "/", day), format = "%m/%d"))
 
 write_csv(puffins_combined, "data/allPuffinData.csv")
 
 ggplot() +
-  geom_line(data = puffins_combined, aes(x = date, y = weight_g, group = nest,
+  geom_line(data = puffins_combined, aes(x = cal_date, y = weight_g, group = nest,
                                          col = as.factor(year))) +
   facet_wrap( ~ factor(location,
                        levels = unique(puffins_combined$location))) +
   theme_linedraw()
 ```
 
-- geom_col() + geom_errorbar()
-- group_by() %>% filter(n() ...)
+- `geom_col()` + `geom_errorbar()`  
+- `group_by() %>% filter(n() ...)`  
 
-- distinct(.keep_all = TRUE)
-- bind_rows()
-- slice()
+- `distinct(.keep_all = TRUE)`  
+- `bind_rows()`  
+- `slice()`
