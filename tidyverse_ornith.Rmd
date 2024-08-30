@@ -251,7 +251,7 @@ puffins_combined <- puffins_combined %>%
   mutate(growth = weight_g - lag(weight_g)) %>%
   
   # fill NAs (first week at each nest) with first-week weight gain
-  replace_na(growth, week1)
+  mutate(growth = replace_na(growth, weight_g[week == 1]))
 
 # plot growth against distance; go over the difference b/w `aes(col = )` and `col = `
 ggplot() +
