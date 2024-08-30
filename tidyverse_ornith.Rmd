@@ -11,72 +11,72 @@ editor_options:
 This script explores and visualizes data examining the variation in pufflings' growth rates based on their parents' average time spent travelling to foraging grounds, hypothetically collected in 2022, 2023, and 2024.
 
 #### `tidyverse` functions covered:
-(Note that you very rarely need to know _which_ `tidyverse` package any of these functions belongs to; I had to look most of these up)
+(Note that you very rarely need to know _which_ `tidyverse` package any of these functions belongs to; I had to look most of these up.)
 
-ggplot2::
-- ggplot()
-- geom_histogram()
-- geom_boxplot()
-- geom_point()
-- geom_line()
-- geom_jitter()
-- geom_smooth()
-- geom_text()
-- geom_label()
-- aes()
-- position_dodge()
-- scale_*_discrete(): scale_x_discrete()
-- scale_*_continuous(): scale_y_continuous()
-- scale_*_manual(): scale_fill_manual()
-- facet_wrap()
-- coord_flip()
-- labs()
-- theme_*(): theme_linedraw(), theme_classic()
-- theme()
-- element_*(): element_blank(), element_text()
-- ggsave()
+`ggplot2`::  
+- `ggplot()`  
+- `geom_histogram()`  
+- `geom_boxplot()`  
+- `geom_point()`  
+- `geom_line()`  
+- `geom_jitter()`  
+- `geom_smooth()`  
+- `geom_text()`  
+- `geom_label()`  
+- `aes()`  
+- `position_dodge()`  
+- `scale_*_discrete()`: `scale_x_discrete()`  
+- `scale_*_continuous()`: `scale_y_continuous()`  
+- `scale_*_manual()`: `scale_fill_manual()`  
+- `facet_wrap()`  
+- `coord_flip()`  
+- `labs()`  
+- `theme_*()`: `theme_linedraw()`, `theme_classic()`  
+- `theme()`  
+- `element_*()`: `element_blank()`, `element_text()`  
+- `ggsave()`  
 
-dplyr::
-- mutate()
-- group_by()
-- summarise()/summarize()
-- filter()
-- rowwise()
-- c_across()
-- across()
-- *_join(): left_join(), right_join()
-- join_by()
-- case_when()
-- n()
-- lag(), lead()
+`dplyr`::  
+- `mutate()`  
+- `group_by()`  
+- `summarise()`/`summarize()`  
+- `filter()`  
+- `rowwise()`  
+- `c_across()`  
+- `across()`  
+- `*_join()`: `left_join()`, `right_join()`  
+- `join_by()`  
+- `case_when()`  
+- `n()`  
+- `lag()`, `lead()`  
 
-tidyr::
-- pivot_longer()
-- separate_wider_delim()
-- complete()
-- replace_na()
+`tidyr`::  
+- `pivot_longer()`  
+- `separate_wider_delim()`  
+- `complete()`  
+- `replace_na()`  
 
-tidyselect::
-- starts_with()
-- everything()
+`tidyselect`::  
+- `starts_with()`  
+- `everything()`  
 
-stringr::
-- str_detect()
-- str_extract()
-- str_remove_all()
+`stringr`::  
+- `str_detect()`  
+- `str_extract()`  
+- `str_remove_all()`  
 
-readr::
-- read_csv()
-- write_csv()
+`readr`::  
+- `read_csv()`  
+- `write_csv()`  
 
-forcats::
-- as.factor()
+`forcats`::  
+- `as.factor()`  
 
-magrittr::
-- %>%
+`magrittr`::  
+- `%>%`  
 
-glue::
-- glue()
+`glue`::  
+- `glue()`  
 
 ## Load packages
 ```{r}
