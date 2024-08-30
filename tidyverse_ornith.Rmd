@@ -149,7 +149,7 @@ ggplot(pufflings, aes(x = week, y = weight_g)) +
   labs(x = "Date range", y = "Puffling weight (g)") +
   
   # rotate the plot
-  coord_flip() +
+  #coord_flip() +
   
   # change the theme
   theme_linedraw() +
